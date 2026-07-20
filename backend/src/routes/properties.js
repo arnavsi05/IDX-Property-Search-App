@@ -3,6 +3,28 @@ const pool = require("../db/pool");
 
 const router = express.Router();
 
+function validateListingId(id) {
+  if (!id || typeof id !== "string") {
+    throw new Error("Listing ID is required");
+  }
+
+  const trimmedId = id.trim();
+
+  if (trimmedId.length === 0) {
+    throw new Error("Listing ID cannot be empty");
+  }
+
+  if (trimmedId.length > 50) {
+    throw new Error("Listing ID is too long");
+  }
+
+  if (!/^[A-Za-z0-9_-]+$/.test(trimmedId)) {
+    throw new Error("Listing ID contains invalid characters");
+  }
+
+  return trimmedId;
+}
+
 function parseLimit(value) {
   if (value === undefined) return 20;
 
@@ -176,6 +198,108 @@ router.get("/", async (req, res) => {
 
     res.status(500).json({
       error: "Failed to fetch properties",
+    });
+  }
+});
+
+router.get("/:id/openhouses", async (req, res) => {
+  try {
+    const listingId = validateListingId(req.params.id);
+
+    const [propertyRows] = await pool.execute(
+      `
+        SELECT L_ListingID
+        FROM rets_property
+        WHERE L_ListingID = ?
+        LIMIT 1
+      `,
+      [listingId]
+    );
+
+    if (propertyRows.length === 0) {
+      return res.status(404).json({
+        error: "Property not found",
+      });
+    }
+
+    const [openHouses] = await pool.execute(
+      `
+        SELECT
+          L_ListingID,
+          OpenHouseDate,
+          OH_StartTime,
+          OH_EndTime,
+          all_data
+        FROM rets_openhouse
+        WHERE L_ListingID = ?
+        ORDER BY OpenHouseDate ASC, OH_StartTime ASC
+      `,
+      [listingId]
+    );
+
+    res.json(openHouses);
+  } catch (error) {
+    if (error.message.includes("Listing ID")) {
+      return res.status(400).json({
+        error: error.message,
+      });
+    }
+
+    console.error("Error fetching open houses:", error);
+
+    res.status(500).json({
+      error: "Failed to fetch open houses",
+    });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    const listingId = validateListingId(req.params.id);
+
+    const [rows] = await pool.execute(
+      `
+        SELECT
+          L_ListingID,
+          L_Address,
+          L_City,
+          L_State,
+          L_Zip,
+          L_SystemPrice,
+          L_Keyword2,
+          LM_Dec_3,
+          LM_Int2_3,
+          L_Photos,
+          LMD_MP_Latitude,
+          LMD_MP_Longitude,
+          L_Remarks,
+          YearBuilt,
+          LotSizeAcres
+        FROM rets_property
+        WHERE L_ListingID = ?
+        LIMIT 1
+      `,
+      [listingId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        error: "Property not found",
+      });
+    }
+
+    res.json(rows[0]);
+  } catch (error) {
+    if (error.message.includes("Listing ID")) {
+      return res.status(400).json({
+        error: error.message,
+      });
+    }
+
+    console.error("Error fetching property detail:", error);
+
+    res.status(500).json({
+      error: "Failed to fetch property detail",
     });
   }
 });
