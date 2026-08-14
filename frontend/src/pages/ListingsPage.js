@@ -1,73 +1,87 @@
 import { useEffect, useState } from "react";
 import { fetchProperties } from "../api/client";
 import PropertyCard from "../components/PropertyCard";
+import PropertyFilters from "../components/PropertyFilters";
 
 function ListingsPage() {
   const [properties, setProperties] = useState([]);
   const [total, setTotal] = useState(0);
-  const [limit, setLimit] = useState(20);
-  const [offset, setOffset] = useState(0);
+  const [filters, setFilters] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadProperties() {
       try {
         setLoading(true);
         setError("");
 
         const data = await fetchProperties({
-          limit,
-          offset,
+          ...filters,
+          limit: 20,
+          offset: 0,
         });
 
-        setProperties(data.results);
-        setTotal(data.total);
+        if (!cancelled) {
+          setProperties(data.results);
+          setTotal(data.total);
+        }
       } catch (err) {
-        setError(err.message);
+        if (!cancelled) {
+          setError(err.message);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
     loadProperties();
-  }, [limit, offset]);
 
-  if (loading) {
-    return (
-      <main className="page">
-        <h1>Property Search</h1>
-        <p>Loading properties...</p>
-      </main>
-    );
-  }
+    return () => {
+      cancelled = true;
+    };
+  }, [filters]);
 
-  if (error) {
-    return (
-      <main className="page">
-        <h1>Property Search</h1>
-        <p className="error-message">Error: {error}</p>
-      </main>
-    );
+  function handleSearch(newFilters) {
+    setFilters(newFilters);
   }
 
   return (
     <main className="page">
       <header className="page-header">
         <h1>Property Search</h1>
-        <p>
-          Showing {properties.length} of {total} properties
-        </p>
       </header>
 
-      <section className="property-grid">
-        {properties.map((property) => (
-          <PropertyCard
-            key={property.L_ListingID}
-            property={property}
-          />
-        ))}
-      </section>
+      <PropertyFilters onSearch={handleSearch} />
+
+      {loading && <p>Loading properties...</p>}
+
+      {error && <p className="error-message">Error: {error}</p>}
+
+      {!loading && !error && properties.length === 0 && (
+        <p>No properties found. Try changing your filters.</p>
+      )}
+
+      {!loading && !error && properties.length > 0 && (
+        <>
+          <p>
+            Showing {properties.length} of {total} properties
+          </p>
+
+          <section className="property-grid">
+            {properties.map((property) => (
+              <PropertyCard
+                key={property.L_ListingID}
+                property={property}
+              />
+            ))}
+          </section>
+        </>
+      )}
     </main>
   );
 }
