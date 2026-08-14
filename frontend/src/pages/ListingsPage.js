@@ -2,11 +2,15 @@ import { useEffect, useState } from "react";
 import { fetchProperties } from "../api/client";
 import PropertyCard from "../components/PropertyCard";
 import PropertyFilters from "../components/PropertyFilters";
+import Pagination from "../components/Pagination";
+
+const ITEMS_PER_PAGE = 20;
 
 function ListingsPage() {
   const [properties, setProperties] = useState([]);
   const [total, setTotal] = useState(0);
   const [filters, setFilters] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -18,10 +22,12 @@ function ListingsPage() {
         setLoading(true);
         setError("");
 
+        const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
         const data = await fetchProperties({
           ...filters,
-          limit: 20,
-          offset: 0,
+          limit: ITEMS_PER_PAGE,
+          offset,
         });
 
         if (!cancelled) {
@@ -44,11 +50,27 @@ function ListingsPage() {
     return () => {
       cancelled = true;
     };
-  }, [filters]);
+  }, [filters, currentPage]);
 
   function handleSearch(newFilters) {
     setFilters(newFilters);
+    setCurrentPage(1);
   }
+
+  function handlePageChange(page) {
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+  }
+
+  const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
+
+  const firstResult =
+    total === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
+
+  const lastResult = Math.min(
+    currentPage * ITEMS_PER_PAGE,
+    total
+  );
 
   return (
     <main className="page">
@@ -60,16 +82,22 @@ function ListingsPage() {
 
       {loading && <p>Loading properties...</p>}
 
-      {error && <p className="error-message">Error: {error}</p>}
+      {error && (
+        <p className="error-message">
+          Error: {error}
+        </p>
+      )}
 
       {!loading && !error && properties.length === 0 && (
-        <p>No properties found. Try changing your filters.</p>
+        <p>
+          No properties found. Try changing your filters.
+        </p>
       )}
 
       {!loading && !error && properties.length > 0 && (
         <>
           <p>
-            Showing {properties.length} of {total} properties
+            Showing {firstResult}-{lastResult} of {total} properties
           </p>
 
           <section className="property-grid">
@@ -80,6 +108,12 @@ function ListingsPage() {
               />
             ))}
           </section>
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </>
       )}
     </main>
