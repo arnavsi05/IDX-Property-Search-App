@@ -3,7 +3,7 @@
 A Zillow/Redfin-style property search application backed by real MLS data: a searchable, filterable, sortable listings page with pagination; a property detail page with a photo gallery, map, and open house schedule; favorites; and a REST API in front of a MySQL database of ~53,000 property listings.
 
 
-![Listings page screenshot](frontend\public\screenshot.png)
+![Listings page screenshot](frontend/public/screenshot.png)
 
 
 ## Tech Stack
