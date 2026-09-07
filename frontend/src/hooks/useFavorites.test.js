@@ -38,21 +38,21 @@ describe("useFavorites", () => {
   });
 
   test("keeps separate hook instances in sync", () => {
-    const hookA = renderHook(() => useFavorites());
-    const hookB = renderHook(() => useFavorites());
+    const { result: resultA } = renderHook(() => useFavorites());
+    const { result: resultB } = renderHook(() => useFavorites());
     const id = "sync-test-id";
 
     act(() => {
-      hookA.result.current.toggleFavorite(id);
+      resultA.current.toggleFavorite(id);
     });
 
-    expect(hookB.result.current.isFavorite(id)).toBe(true);
-    expect(hookB.result.current.favoriteIds).toContain(id);
+    expect(resultB.current.isFavorite(id)).toBe(true);
+    expect(resultB.current.favoriteIds).toContain(id);
 
     act(() => {
-      hookA.result.current.toggleFavorite(id);
+      resultA.current.toggleFavorite(id);
     });
 
-    expect(hookB.result.current.isFavorite(id)).toBe(false);
+    expect(resultB.current.isFavorite(id)).toBe(false);
   });
 });
