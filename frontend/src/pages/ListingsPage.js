@@ -3,13 +3,24 @@ import { fetchProperties } from "../api/client";
 import PropertyCard from "../components/PropertyCard";
 import PropertyFilters from "../components/PropertyFilters";
 import Pagination from "../components/Pagination";
+import SortSelect from "../components/SortSelect";
 
 const ITEMS_PER_PAGE = 20;
+
+function parseSortValue(sortValue) {
+  if (!sortValue) {
+    return {};
+  }
+
+  const [sortBy, sortOrder] = sortValue.split(":");
+  return { sortBy, sortOrder };
+}
 
 function ListingsPage() {
   const [properties, setProperties] = useState([]);
   const [total, setTotal] = useState(0);
   const [filters, setFilters] = useState({});
+  const [sortValue, setSortValue] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -26,6 +37,7 @@ function ListingsPage() {
 
         const data = await fetchProperties({
           ...filters,
+          ...parseSortValue(sortValue),
           limit: ITEMS_PER_PAGE,
           offset,
         });
@@ -50,10 +62,16 @@ function ListingsPage() {
     return () => {
       cancelled = true;
     };
-  }, [filters, currentPage]);
+  }, [filters, sortValue, currentPage]);
 
   function handleSearch(newFilters) {
     setFilters(newFilters);
+    setSortValue("");
+    setCurrentPage(1);
+  }
+
+  function handleSortChange(newSortValue) {
+    setSortValue(newSortValue);
     setCurrentPage(1);
   }
 
@@ -96,9 +114,13 @@ function ListingsPage() {
 
       {!loading && !error && properties.length > 0 && (
         <>
-          <p>
-            Showing {firstResult}-{lastResult} of {total} properties
-          </p>
+          <div className="listings-toolbar">
+            <p>
+              Showing {firstResult}-{lastResult} of {total} properties
+            </p>
+
+            <SortSelect value={sortValue} onChange={handleSortChange} />
+          </div>
 
           <section className="property-grid">
             {properties.map((property) => (

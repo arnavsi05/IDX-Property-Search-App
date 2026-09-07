@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import PropertyImageCarousel from "./PropertyImageCarousel";
+import { useFavorites } from "../hooks/useFavorites";
 
 function formatPrice(price) {
   const numericPrice = Number(price);
@@ -16,19 +17,40 @@ function formatPrice(price) {
 }
 
 function PropertyCard({ property }) {
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const favorited = isFavorite(property.L_ListingID);
+
   const beds = property.L_Keyword2;
   const baths = property.LM_Dec_3;
   const sqft = property.LM_Int2_3;
+
+  function handleFavoriteClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleFavorite(property.L_ListingID);
+  }
 
   return (
     <Link
       to={`/property/${property.L_ListingID}`}
       className="property-card"
     >
-      <PropertyImageCarousel
-        photoData={property.L_Photos}
-        address={property.L_Address}
-      />
+      <div className="property-card-media">
+        <PropertyImageCarousel
+          photoData={property.L_Photos}
+          address={property.L_Address}
+        />
+
+        <button
+          type="button"
+          className={favorited ? "favorite-button favorited" : "favorite-button"}
+          aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
+          aria-pressed={favorited}
+          onClick={handleFavoriteClick}
+        >
+          {favorited ? "♥" : "♡"}
+        </button>
+      </div>
 
       <div className="property-card-content">
         <h2>{formatPrice(property.L_SystemPrice)}</h2>

@@ -73,6 +73,36 @@ function parsePositiveInteger(value, fieldName) {
   return number;
 }
 
+// Actual rets_property SQL column names, not RESO names. Using anything
+// outside this list would silently return unsorted results, so we validate
+// against it and interpolate only a whitelisted value into the ORDER BY.
+const SORTABLE_COLUMNS = [
+  "L_SystemPrice",
+  "ListingContractDate",
+  "LM_Int2_3",
+  "L_Keyword2",
+];
+
+function parseSort(query) {
+  const { sortBy, sortOrder } = query;
+
+  if (sortBy === undefined) {
+    return null;
+  }
+
+  if (!SORTABLE_COLUMNS.includes(sortBy)) {
+    throw new Error(`sortBy must be one of: ${SORTABLE_COLUMNS.join(", ")}`);
+  }
+
+  const order = (sortOrder || "ASC").toUpperCase();
+
+  if (order !== "ASC" && order !== "DESC") {
+    throw new Error("sortOrder must be ASC or DESC");
+  }
+
+  return { column: sortBy, order };
+}
+
 function buildPropertyFilters(query) {
   const conditions = [];
   const values = [];
@@ -139,8 +169,13 @@ router.get("/", async (req, res) => {
   try {
     const limit = parseLimit(req.query.limit);
     const offset = parseOffset(req.query.offset);
+    const sort = parseSort(req.query);
 
     const { whereClause, values } = buildPropertyFilters(req.query);
+
+    const orderClause = sort
+      ? `ORDER BY ${sort.column} ${sort.order}, L_ListingID ASC`
+      : "ORDER BY L_ListingID";
 
     const countSql = `
       SELECT COUNT(*) AS total
@@ -164,7 +199,7 @@ router.get("/", async (req, res) => {
         LMD_MP_Longitude
     FROM rets_property
     ${whereClause}
-    ORDER BY L_ListingID
+    ${orderClause}
     LIMIT ${limit}
     OFFSET ${offset}
     `;
@@ -187,7 +222,9 @@ router.get("/", async (req, res) => {
       error.message.includes("beds") ||
       error.message.includes("baths") ||
       error.message.includes("city") ||
-      error.message.includes("zipcode")
+      error.message.includes("zipcode") ||
+      error.message.includes("sortBy") ||
+      error.message.includes("sortOrder")
     ) {
       return res.status(400).json({
         error: error.message,
