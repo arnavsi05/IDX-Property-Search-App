@@ -1,20 +1,5 @@
-function parsePhotos(photoValue) {
-  if (!photoValue) {
-    return [];
-  }
-
-  try {
-    const parsed = JSON.parse(photoValue);
-
-    if (Array.isArray(parsed)) {
-      return parsed.filter((url) => typeof url === "string" && url.trim() !== "");
-    }
-
-    return [];
-  } catch {
-    return [];
-  }
-}
+import { Link } from "react-router-dom";
+import PropertyImageCarousel from "./PropertyImageCarousel";
 
 function formatPrice(price) {
   const numericPrice = Number(price);
@@ -31,24 +16,19 @@ function formatPrice(price) {
 }
 
 function PropertyCard({ property }) {
-  const photos = parsePhotos(property.L_Photos);
-  const firstPhoto = photos[0];
-
   const beds = property.L_Keyword2;
   const baths = property.LM_Dec_3;
   const sqft = property.LM_Int2_3;
 
   return (
-    <article className="property-card">
-      {firstPhoto ? (
-        <img
-          className="property-card-image"
-          src={firstPhoto}
-          alt={property.L_Address || "Property"}
-        />
-      ) : (
-        <div className="property-card-placeholder">No photo available</div>
-      )}
+    <Link
+      to={`/property/${property.L_ListingID}`}
+      className="property-card"
+    >
+      <PropertyImageCarousel
+        photoData={property.L_Photos}
+        address={property.L_Address}
+      />
 
       <div className="property-card-content">
         <h2>{formatPrice(property.L_SystemPrice)}</h2>
@@ -69,7 +49,7 @@ function PropertyCard({ property }) {
           {sqft ? `${sqft} sqft` : "Sqft unavailable"}
         </p>
       </div>
-    </article>
+    </Link>
   );
 }
 

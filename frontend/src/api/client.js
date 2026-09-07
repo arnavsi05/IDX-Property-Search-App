@@ -27,3 +27,41 @@ export async function fetchProperties(params = {}) {
 
   return response.json();
 }
+
+export async function fetchPropertyDetail(id) {
+  const response = await fetch(`/api/properties/${encodeURIComponent(id)}`);
+
+  if (!response.ok) {
+    let message = "Failed to fetch property details";
+
+    try {
+      const errorData = await response.json();
+      message = errorData.error || message;
+    } catch {
+      // If the server does not return JSON, keep the default message.
+    }
+
+    throw new Error(message);
+  }
+
+  return response.json();
+}
+
+export async function fetchOpenHouses(id) {
+  const response = await fetch(`/api/properties/${encodeURIComponent(id)}/openhouses`);
+
+  if (!response.ok) {
+    let message = "Failed to fetch open houses";
+
+    try {
+      const errorData = await response.json();
+      message = errorData.error || message;
+    } catch {
+      // If the server does not return JSON, keep the default message.
+    }
+
+    throw new Error(message);
+  }
+
+  return response.json();
+}
