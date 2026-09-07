@@ -103,6 +103,13 @@ function parseSort(query) {
   return { column: sortBy, order };
 }
 
+// Builds the WHERE clause and its parameter list in lockstep: every condition
+// pushed onto `conditions` must push its value(s) onto `values` in the same
+// step, so the `?` placeholders line up positionally when passed to
+// pool.execute. Interleaving them any other way (e.g. building all
+// conditions first, then all values in a different order) is the Week 3
+// debug challenge bug — combining filters silently mismatches values to the
+// wrong placeholders.
 function buildPropertyFilters(query) {
   const conditions = [];
   const values = [];
@@ -127,6 +134,10 @@ function buildPropertyFilters(query) {
     throw new Error("zipcode cannot be empty");
   }
 
+  // City names in the source data have inconsistent casing/whitespace
+  // ("Portland", "portland", " PORTLAND "), so both sides are normalized.
+  // Trade-off: this makes the comparison non-sargable, so MySQL can't use
+  // idx_property_city here (see backend/docs/PERFORMANCE.md).
   if (city) {
     conditions.push("LOWER(TRIM(L_City)) = LOWER(TRIM(?))");
     values.push(city);

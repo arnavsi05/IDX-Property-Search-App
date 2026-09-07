@@ -1,3 +1,10 @@
+// Renders at most 7 page-number slots. Four cases, in order: everything
+// fits with no ellipsis; current page is near the start (show 1-5, then
+// jump to the end); current page is near the end (mirror of the above);
+// current page is in the middle (show first, last, and a window around
+// current). The near-start and near-end branches always name exactly 5
+// distinct numbers plus the opposite end, so the same page can never be
+// listed twice — that double-counting was the Week 7 debug challenge bug.
 function getPageNumbers(currentPage, totalPages) {
   if (totalPages <= 7) {
     return Array.from({ length: totalPages }, (_, index) => index + 1);

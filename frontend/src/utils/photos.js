@@ -1,3 +1,6 @@
+// L_Photos is stored as a JSON string, but some rows have null, an empty
+// string, or a malformed/non-array value instead of a real photo array —
+// so every failure mode here falls back to [] rather than throwing.
 export function parsePhotos(photoValue) {
   if (!photoValue) {
     return [];

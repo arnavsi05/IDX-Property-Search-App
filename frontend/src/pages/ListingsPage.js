@@ -64,6 +64,10 @@ function ListingsPage() {
     };
   }, [filters, sortValue, currentPage]);
 
+  // New filters reset both sort and page: a sort chosen for the old result
+  // set may not make sense for the new one, and page 5 of the old set may
+  // not exist in the new one. Sort itself only resets the page, since the
+  // filters are still valid — just reordered.
   function handleSearch(newFilters) {
     setFilters(newFilters);
     setSortValue("");

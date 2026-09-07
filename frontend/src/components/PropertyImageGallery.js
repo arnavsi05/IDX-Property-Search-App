@@ -78,6 +78,7 @@ function PropertyImageGallery({ photoData, address }) {
           <>
             <button
               className="gallery-arrow gallery-arrow-left"
+              aria-label="Previous photo"
               onClick={showPrevious}
             >
               ←
@@ -85,6 +86,7 @@ function PropertyImageGallery({ photoData, address }) {
 
             <button
               className="gallery-arrow gallery-arrow-right"
+              aria-label="Next photo"
               onClick={showNext}
             >
               →
@@ -139,6 +141,7 @@ function PropertyImageGallery({ photoData, address }) {
             {photos.length > 1 && (
               <button
                 className="lightbox-left"
+                aria-label="Previous photo"
                 onClick={showPrevious}
               >
                 ←
@@ -153,6 +156,7 @@ function PropertyImageGallery({ photoData, address }) {
             {photos.length > 1 && (
               <button
                 className="lightbox-right"
+                aria-label="Next photo"
                 onClick={showNext}
               >
                 →
