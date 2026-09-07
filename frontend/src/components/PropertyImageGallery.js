@@ -119,6 +119,9 @@ function PropertyImageGallery({ photoData, address }) {
       {lightboxOpen && (
         <div
           className="lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Photo lightbox"
           onClick={() => setLightboxOpen(false)}
         >
           <div
@@ -127,6 +130,7 @@ function PropertyImageGallery({ photoData, address }) {
           >
             <button
               className="lightbox-close"
+              aria-label="Close lightbox"
               onClick={() => setLightboxOpen(false)}
             >
               ×

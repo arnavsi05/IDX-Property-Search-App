@@ -25,10 +25,10 @@ describe("PropertyImageGallery", () => {
     render(<PropertyImageGallery photoData={twoPhotos} address="123 Main St" />);
 
     fireEvent.click(screen.getByAltText("123 Main St"));
-    expect(document.querySelector(".lightbox")).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Photo lightbox" })).toBeInTheDocument();
 
     fireEvent.keyDown(window, { key: "Escape" });
-    expect(document.querySelector(".lightbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Photo lightbox" })).not.toBeInTheDocument();
   });
 
   test("left/right arrows in the lightbox navigate photos", () => {
